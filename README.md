@@ -1,4 +1,6 @@
-# Zabbix-шаблон: ТС ПИоТ (ЕСМ) + ЛМ ЧЗ
+# Zabbix-шаблон: ТС ПИоТ (ЕСМ) + ЛМ ЧЗ · Zabbix template: TS PIoT (ECM) + LM CZ
+
+> **EN:** Zabbix template (6.0–8.0) for retail cash-register (POS) nodes running the **Local Honest Sign module** (Chestny Znak / Честный Знак, the Russian marking-code system) and **TS PIoT (ECM)**: Windows services, listening ports, and — the key feature — module readiness status (`ready` / `not_configured`) polled from the module's local API. The `not_configured` state is invisible to service/port triggers: everything looks green while offline code verification is actually broken. Full documentation in Russian below.
 
 Шаблон мониторинга кассовых узлов с локальным модулем «Честного Знака» (ЛМ ЧЗ) и транспортным модулем ЕСМ/ТС ПИоТ для **Zabbix 8.0**.
 
