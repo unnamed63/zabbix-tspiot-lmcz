@@ -25,54 +25,108 @@ zabbix_export:
           delay: 5m
           history: 14d
           description: 'API локального модуля ЧЗ (слушает 0.0.0.0, порт в local.ini).'
+          triggers:
+            - uuid: 2977d72e14974fbc9ecda7b7b7950482
+              expression: 'last(/TS PIOT ECM LM CZ/net.tcp.listen[5995])=0 and {$TPIOT.CHECK.PORTS}=1'
+              name: 'ЛМ ЧЗ: порт 5995 (API ЛМ) не слушается'
+              priority: AVERAGE
+              description: 'API локального модуля ЧЗ не слушается.'
         - uuid: 8278360534494cd2a4dd785c52547677
           name: 'ТС ПИоТ: порт 50063 (контроллер ЛМ ЧЗ) слушается'
           key: 'net.tcp.listen[50063]'
           delay: 5m
           history: 14d
           description: 'Фиксированный порт контроллера ЛМ ЧЗ, менять нельзя (иначе ошибка 514 на кассе).'
+          triggers:
+            - uuid: a808530baae34404b80549705a62a270
+              expression: 'last(/TS PIOT ECM LM CZ/net.tcp.listen[50063])=0 and {$TPIOT.CHECK.PORTS}=1'
+              name: 'ТС ПИоТ: порт 50063 (контроллер ЛМ ЧЗ) не слушается'
+              priority: HIGH
+              description: 'Контроллер ЛМ ЧЗ не слушает фиксированный порт 50063.'
         - uuid: e8d1983b4485479ea3f9b8a1a4a4b0cb
           name: 'ТС ПИоТ: порт 51401 (API ЕСМ) слушается'
           key: 'net.tcp.listen[51401]'
           delay: 5m
           history: 14d
           description: '0 = не слушается, 1 = слушается. API ЕСМ https://localhost:51401/api/v2.'
+          triggers:
+            - uuid: 32f7afac01d748beba06119eb367625a
+              expression: 'last(/TS PIOT ECM LM CZ/net.tcp.listen[51401])=0 and {$TPIOT.CHECK.PORTS}=1'
+              name: 'ТС ПИоТ: порт 51401 (API ЕСМ) не слушается'
+              priority: HIGH
+              description: 'API ЕСМ не отвечает — служба висит или упала (сокет закрыт).'
         - uuid: 5c9e4624015f44fba6abcac6dfb29bf4
           name: 'ЕСМ: служба epc-bridge (состояние)'
           key: 'service.info[epc-bridge,state]'
           delay: 3m
           history: 14d
           description: '0 = RUNNING. 255 = служба не установлена.'
+          triggers:
+            - uuid: 003ac838c4954bf0ac0b93ad3ecf7787
+              expression: 'min(/TS PIOT ECM LM CZ/service.info[epc-bridge,state],10m)>0 and max(/TS PIOT ECM LM CZ/service.info[epc-bridge,state],10m)<255'
+              name: 'ЕСМ: служба epc-bridge не работает (>10м)'
+              priority: HIGH
+              description: 'EPC-мост ЕСМ не в состоянии RUNNING более 10 минут.'
         - uuid: 22a01496a8f54f53bc83e3bda09a04c9
           name: 'ЕСМ: контроллер ЛМ ЧЗ esm-lm-controller (состояние)'
           key: 'service.info[esm-lm-controller,state]'
           delay: 3m
           history: 14d
           description: '0 = RUNNING. Порт 50063 фиксированный, служба обязательна при работе ЛМ ЧЗ.'
+          triggers:
+            - uuid: 37696f50e6f546e89a1d28168b708943
+              expression: 'min(/TS PIOT ECM LM CZ/service.info[esm-lm-controller,state],10m)>0 and max(/TS PIOT ECM LM CZ/service.info[esm-lm-controller,state],10m)<255'
+              name: 'ЕСМ: контроллер ЛМ ЧЗ не работает (>10м)'
+              priority: HIGH
+              description: 'Контроллер ЛМ ЧЗ остановлен: касса получит ошибку 514 при проверке кода.'
         - uuid: 060171ce75bf42e78ab8acc3cc3ef80f
           name: 'ЕСМ: служба esm-orchestrator (состояние)'
           key: 'service.info[esm-orchestrator,state]'
           delay: 3m
           history: 14d
           description: '0 = RUNNING. 255 = служба не установлена. Триггер: не RUNNING более 10 минут.'
+          triggers:
+            - uuid: 85a2ebb4773e48a0addc29c1b6db63d0
+              expression: 'min(/TS PIOT ECM LM CZ/service.info[esm-orchestrator,state],10m)>0 and max(/TS PIOT ECM LM CZ/service.info[esm-orchestrator,state],10m)<255'
+              name: 'ЕСМ: служба esm-orchestrator не работает (>10м)'
+              priority: HIGH
+              description: 'Оркестратор ЕСМ не в состоянии RUNNING более 10 минут. 255 (не установлена) не учитывается.'
         - uuid: f3d1eab644d14b268eb89e6cc35899ed
           name: 'ЛМ ЧЗ: служба regime (состояние)'
           key: 'service.info[regime,state]'
           delay: 3m
           history: 14d
           description: 'Основная служба локального модуля ЧЗ (C:\Program Files\Regime, nssm). 0 = RUNNING, 255 = не установлена.'
+          triggers:
+            - uuid: 30da0467b9e74be08190dced32e288e4
+              expression: 'min(/TS PIOT ECM LM CZ/service.info[regime,state],10m)>0 and max(/TS PIOT ECM LM CZ/service.info[regime,state],10m)<255'
+              name: 'ЛМ ЧЗ: служба regime не работает (>10м)'
+              priority: HIGH
+              description: 'Локальный модуль ЧЗ остановлен — офлайн-проверка кодов невозможна.'
         - uuid: 862d51f82e8d4367921b2a1004ed9b52
           name: 'ЛМ ЧЗ: служба yenisei (состояние)'
           key: 'service.info[yenisei,state]'
           delay: 3m
           history: 14d
           description: 'Служба синхронизации базы ЛМ ЧЗ. 0 = RUNNING, 255 = не установлена.'
+          triggers:
+            - uuid: ef57b3d1f29a478db069abb51b1e91a8
+              expression: 'min(/TS PIOT ECM LM CZ/service.info[yenisei,state],10m)>0 and max(/TS PIOT ECM LM CZ/service.info[yenisei,state],10m)<255'
+              name: 'ЛМ ЧЗ: служба yenisei не работает (>10м)'
+              priority: AVERAGE
+              description: 'Синхронизатор базы ЛМ ЧЗ остановлен — база стареет (лимит 72 ч).'
         - uuid: 4ea938a7c01846878dec98578e5c2796
           name: 'ЕСМ: кассовый модуль esm-cm-<serial> (состояние)'
           key: 'service.info[{$TPIOT.SVC.CM},state]'
           delay: 3m
           history: 14d
           description: 'Имя службы задаётся макросом {$TPIOT.SVC.CM} на хосте (esm-cm-<серийник кассы>). 0 = RUNNING.'
+          triggers:
+            - uuid: f75c6edbaf2c456899abd5eaf52cfced
+              expression: 'min(/TS PIOT ECM LM CZ/service.info[{$TPIOT.SVC.CM},state],10m)>0 and max(/TS PIOT ECM LM CZ/service.info[{$TPIOT.SVC.CM},state],10m)<255 and {$TPIOT.CHECK.CM}=1'
+              name: 'ЕСМ: кассовый модуль esm-cm-serial не работает (>10м)'
+              priority: HIGH
+              description: 'Включается макросом {$TPIOT.CHECK.CM}=1 на хосте (после задания {$TPIOT.SVC.CM}).'
         - uuid: a2175fe90bc04bdb876e3f556c5c647c
           name: 'ЛМ ЧЗ: статус модуля (ready/not_configured)'
           type: HTTP_AGENT
@@ -91,63 +145,18 @@ zabbix_export:
             - type: JSONPATH
               parameters:
                 - '$.status'
-      triggers:
-        - uuid: 2977d72e14974fbc9ecda7b7b7950482
-          expression: 'last(/TS PIOT ECM LM CZ/net.tcp.listen[5995])=0 and {$TPIOT.CHECK.PORTS}=1'
-          name: 'ЛМ ЧЗ: порт 5995 (API ЛМ) не слушается'
-          priority: AVERAGE
-          description: 'API локального модуля ЧЗ не слушается.'
-        - uuid: a808530baae34404b80549705a62a270
-          expression: 'last(/TS PIOT ECM LM CZ/net.tcp.listen[50063])=0 and {$TPIOT.CHECK.PORTS}=1'
-          name: 'ТС ПИоТ: порт 50063 (контроллер ЛМ ЧЗ) не слушается'
-          priority: HIGH
-          description: 'Контроллер ЛМ ЧЗ не слушает фиксированный порт 50063.'
-        - uuid: 32f7afac01d748beba06119eb367625a
-          expression: 'last(/TS PIOT ECM LM CZ/net.tcp.listen[51401])=0 and {$TPIOT.CHECK.PORTS}=1'
-          name: 'ТС ПИоТ: порт 51401 (API ЕСМ) не слушается'
-          priority: HIGH
-          description: 'API ЕСМ не отвечает — служба висит или упала (сокет закрыт).'
-        - uuid: 003ac838c4954bf0ac0b93ad3ecf7787
-          expression: 'min(/TS PIOT ECM LM CZ/service.info[epc-bridge,state],10m)>0 and max(/TS PIOT ECM LM CZ/service.info[epc-bridge,state],10m)<255'
-          name: 'ЕСМ: служба epc-bridge не работает (>10м)'
-          priority: HIGH
-          description: 'EPC-мост ЕСМ не в состоянии RUNNING более 10 минут.'
-        - uuid: 37696f50e6f546e89a1d28168b708943
-          expression: 'min(/TS PIOT ECM LM CZ/service.info[esm-lm-controller,state],10m)>0 and max(/TS PIOT ECM LM CZ/service.info[esm-lm-controller,state],10m)<255'
-          name: 'ЕСМ: контроллер ЛМ ЧЗ не работает (>10м)'
-          priority: HIGH
-          description: 'Контроллер ЛМ ЧЗ остановлен: касса получит ошибку 514 при проверке кода.'
-        - uuid: 85a2ebb4773e48a0addc29c1b6db63d0
-          expression: 'min(/TS PIOT ECM LM CZ/service.info[esm-orchestrator,state],10m)>0 and max(/TS PIOT ECM LM CZ/service.info[esm-orchestrator,state],10m)<255'
-          name: 'ЕСМ: служба esm-orchestrator не работает (>10м)'
-          priority: HIGH
-          description: 'Оркестратор ЕСМ не в состоянии RUNNING более 10 минут. 255 (не установлена) не учитывается.'
-        - uuid: 30da0467b9e74be08190dced32e288e4
-          expression: 'min(/TS PIOT ECM LM CZ/service.info[regime,state],10m)>0 and max(/TS PIOT ECM LM CZ/service.info[regime,state],10m)<255'
-          name: 'ЛМ ЧЗ: служба regime не работает (>10м)'
-          priority: HIGH
-          description: 'Локальный модуль ЧЗ остановлен — офлайн-проверка кодов невозможна.'
-        - uuid: ef57b3d1f29a478db069abb51b1e91a8
-          expression: 'min(/TS PIOT ECM LM CZ/service.info[yenisei,state],10m)>0 and max(/TS PIOT ECM LM CZ/service.info[yenisei,state],10m)<255'
-          name: 'ЛМ ЧЗ: служба yenisei не работает (>10м)'
-          priority: AVERAGE
-          description: 'Синхронизатор базы ЛМ ЧЗ остановлен — база стареет (лимит 72 ч).'
-        - uuid: f75c6edbaf2c456899abd5eaf52cfced
-          expression: 'min(/TS PIOT ECM LM CZ/service.info[{$TPIOT.SVC.CM},state],10m)>0 and max(/TS PIOT ECM LM CZ/service.info[{$TPIOT.SVC.CM},state],10m)<255 and {$TPIOT.CHECK.CM}=1'
-          name: 'ЕСМ: кассовый модуль esm-cm-serial не работает (>10м)'
-          priority: HIGH
-          description: 'Включается макросом {$TPIOT.CHECK.CM}=1 на хосте (после задания {$TPIOT.SVC.CM}).'
-        - uuid: cf9b85edd03a4fb8aafb06f9f0d3594e
-          expression: 'last(/TS PIOT ECM LM CZ/lm.status)="not_configured"'
-          name: 'ЛМ ЧЗ: модуль не инициализирован (not_configured)'
-          priority: HIGH
-          description: 'Модуль работает, но локальная БД справочников не загружена (dbState пустой). Устраняется локальной инициализацией на узле; удалённо узлы с уже прописанным ИНН не инициализируются.'
-        - uuid: 4500df4eb092476d8372d6ed48d7508b
-          expression: 'nodata(/TS PIOT ECM LM CZ/lm.status,15m)=1'
-          name: 'ЛМ ЧЗ: нет данных от API статуса (порт 5995)'
-          priority: WARNING
-          manual_close: 'YES'
-          description: 'API ЛМ ЧЗ не отвечает: порт закрыт, модуль не установлен (service.info=255) или вернул не-200.'
+          triggers:
+            - uuid: cf9b85edd03a4fb8aafb06f9f0d3594e
+              expression: 'last(/TS PIOT ECM LM CZ/lm.status)="not_configured"'
+              name: 'ЛМ ЧЗ: модуль не инициализирован (not_configured)'
+              priority: HIGH
+              description: 'Модуль работает, но локальная БД справочников не загружена (dbState пустой). Устраняется локальной инициализацией на узле; удалённо узлы с уже прописанным ИНН не инициализируются.'
+            - uuid: 4500df4eb092476d8372d6ed48d7508b
+              expression: 'nodata(/TS PIOT ECM LM CZ/lm.status,15m)=1'
+              name: 'ЛМ ЧЗ: нет данных от API статуса (порт 5995)'
+              priority: WARNING
+              manual_close: 'YES'
+              description: 'API ЛМ ЧЗ не отвечает: порт закрыт, модуль не установлен (service.info=255) или вернул не-200.'
       macros:
         - macro: '{$TPIOT.CHECK.CM}'
           value: '0'
